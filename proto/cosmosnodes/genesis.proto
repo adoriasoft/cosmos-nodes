@@ -1,0 +1,11 @@
+syntax = "proto3";
+package adoriasoft.cosmosnodes.cosmosnodes;
+
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/adoriasoft/cosmos-nodes/x/cosmosnodes/types";
+
+// GenesisState defines the cosmosnodes module's genesis state.
+message GenesisState {
+    // this line is used by starport scaffolding # genesis/proto/state
+}
