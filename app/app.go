@@ -92,6 +92,9 @@ import (
 	cosmosnodesmodulekeeper "github.com/adoriasoft/cosmos-nodes/x/cosmosnodes/keeper"
 	cosmosnodesmoduletypes "github.com/adoriasoft/cosmos-nodes/x/cosmosnodes/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
+	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
+	authzmodule "github.com/cosmos/cosmos-sdk/x/authz/module"
 )
 
 const (
@@ -125,6 +128,7 @@ var (
 	// and genesis verification.
 	ModuleBasics = module.NewBasicManager(
 		auth.AppModuleBasic{},
+		authzmodule.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		capability.AppModuleBasic{},
@@ -191,6 +195,7 @@ type App struct {
 
 	// keepers
 	AccountKeeper    authkeeper.AccountKeeper
+	AuthzKeeper      authzkeeper.Keeper
 	BankKeeper       bankkeeper.Keeper
 	CapabilityKeeper *capabilitykeeper.Keeper
 	StakingKeeper    stakingkeeper.Keeper
@@ -246,6 +251,7 @@ func New(
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		cosmosnodesmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
+		authzkeeper.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
@@ -278,6 +284,7 @@ func New(
 	app.AccountKeeper = authkeeper.NewAccountKeeper(
 		appCodec, keys[authtypes.StoreKey], app.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
 	)
+	app.AuthzKeeper = authzkeeper.NewKeeper(keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter())
 	app.BankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], app.AccountKeeper, app.GetSubspace(banktypes.ModuleName), app.ModuleAccountAddrs(),
 	)
@@ -390,6 +397,7 @@ func New(
 		transferModule,
 		cosmosnodesModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
+		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -424,6 +432,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		cosmosnodesmoduletypes.ModuleName,
+		authz.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
